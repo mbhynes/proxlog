@@ -1,0 +1,4 @@
+pytest
+google-api-core
+google-cloud-bigquery
+mitmproxy

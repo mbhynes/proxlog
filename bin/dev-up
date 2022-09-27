@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+source $(dirname $0)/../dev
+
+REQUIRED_PACKAGES=(google-cloud-sdk jq)
+PROJECT=proxlog
+CLIENT_SERVICE_ACCOUNT="client-logger@$PROJECT.iam.gserviceaccount.com"
+keyfile=".private/${CLIENT_SERVICE_ACCOUNT%%@*}.json"
+
+REQUIRES=(ROOT_DIR)
+
+install_packages() {
+  brew install ${REQUIRED_PACKAGES[@]}
+}
+
+install_python_packages() {
+  python3 -m venv .venv
+  source $ROOT_DIR/.venv/bin/activate
+  pip3 install -r $ROOT_DIR/requirements.txt || die "Failed to install python requirements"
+}
+
+setup_gcloud_project() {
+  mkdir -p .private || die "Failed to create .private/ directory"
+
+  for req in gcloud jq; do
+    if ! which -s "$req"; then
+      die "Could not find $req in the \$PATH."
+    fi
+  done
+
+  if ! gcloud projects describe "$PROJECT" > /dev/null; then
+    gcloud projects create "$PROJECT" || die "Failed to create project $PROJECT."
+  else
+    log "Project $PROJECT exists; attempting to create service account in project."
+  fi
+
+  if ! gcloud beta iam service-accounts describe "$CLIENT_SERVICE_ACCOUNT" > /dev/null; then
+    gcloud beta iam service-accounts create --project "$PROJECT" "${CLIENT_SERVICE_ACCOUNT%%@*}" \
+      || die "Failed to create service account $CLIENT_SERVICE_ACCOUNT"
+  else
+    log "Service account $CLIENT_SERVICE_ACCOUNT exists."
+  fi
+
+  if [ ! -r "$keyfile" ]; then
+    log "Creating a keyfile: $keyfile for the service account $CLIENT_SERVICE_ACCOUNT"
+    gcloud iam service-accounts keys create "$keyfile" \
+      --iam-account=$CLIENT_SERVICE_ACCOUNT \
+      || die "Failed to create key for $CLIENT_SERVICE_ACCOUNT"
+  fi
+
+
+  roles=(
+    "roles/bigquery.admin"
+  )
+  for role in ${roles[@]}; do
+    gcloud projects add-iam-policy-binding "$PROJECT" \
+      --role "$role" \
+      --member serviceAccount:"$CLIENT_SERVICE_ACCOUNT"
+  done
+}
+
+check_requires ${REQUIRES[@]}
+install_packages || die "Failed to install required packages: ${REQUIRED_PACKAGES[@]}."
+install_python_packages || die "Failed to install python packages"
+source $ROOT_DIR/.venv/bin/activate
+setup_gcloud_project || die "Encountered error setting up google cloud project"

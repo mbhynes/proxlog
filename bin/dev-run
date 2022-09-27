@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+source $(dirname $0)/../dev
+
+export GOOGLE_APPLICATION_CREDENTIALS=$PWD/.private/client-logger.json
+
+REQUIRES=(ROOT_DIR GOOGLE_APPLICATION_CREDENTIALS)
+check_requires ${REQUIRES[@]}
+
+port=8080
+
+network_services=(
+  "wi-fi"
+)
+
+network_flags=(
+  "webproxy"
+  "securewebproxy"
+)
+# "socksfirewallproxy"
+
+enable_proxy() {
+  cert=~/.mitmproxy/mitmproxy-ca-cert.pem
+  if [ ! -r "$cert" ]; then
+    error "Certificate $cert does not exist; please run mitmproxy manually first to generate it."
+    die "After creating the cert, run:
+      sudo security add-trusted-cert -d -p ssl -p basic -k /Library/Keychains/System.keychain "$cert"
+    "
+  fi
+  log "Please configure the proxy on service $service with the following commands:"
+  for service in ${network_services[@]}; do
+    for flag in ${network_flags[@]}; do
+      _cmd="networksetup -set${flag} $service 127.0.0.1 $port"
+      log "$_cmd"
+      # log "Configuring proxy on service: $service with: '$_cmd'"
+      # $_cmd || die "Failed to run: $_cmd"
+      _cmd="networksetup -set${flag}state $service on"
+      log "$_cmd"
+      # log "Enabling proxy on service: $service with: '$_cmd'"
+      # $_cmd || die "Failed to run: $_cmd"
+    done
+  done
+}
+
+source .venv/bin/activate
+mitmdump --listen-host 127.0.0.1 -p "$port" -s addons.py \
+  --ignore-hosts bigquery.googleapis.com $@ &
+pid=$!
+sleep 1
+
+cleanup() {
+  for service in ${network_services[@]}; do
+    for flag in ${network_flags[@]}; do
+      log "Disabling web proxy on service: $service"
+      _cmd="networksetup -set${flag}state $service off"
+      $_cmd || error "Failed to execute command: $_cmd. Manual fix required."
+    done
+  done
+  kill -1 "$pid"
+}
+trap cleanup EXIT
+
+enable_proxy || die "Failed to set the proxy with networksetup."
+wait "$pid"
+
+unset GOOGLE_APPLICATION_CREDENTIALS
