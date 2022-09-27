@@ -71,7 +71,7 @@ class StreamingTableWriter:
     self._insert_buffered_rows(payload)
 
   async def _post(self, payload):
-    errors = await asyncio.coroutine(self.client.insert_rows)(self.table, [{}], timeout=1)
+    errors = await asyncio.coroutine(self.client.insert_rows)(self.table, [{}])
     for e in errors:
       self.log.error(e)
     await asyncio.sleep(1)
@@ -82,7 +82,7 @@ class StreamingTableWriter:
     if nrows < self.buffer_size:
       return
     self.logger.error(f"Flushing buffer; posting {nrows} rows to BQ")
-    errors = self.client.insert_rows(self.table, self._row_buffer, timeout=1)
+    errors = self.client.insert_rows(self.table, self._row_buffer)
     self._row_buffer = []
     for e in errors:
       self.logger.error(f"Encountered exception {e} during client.insert_rows")

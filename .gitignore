@@ -2,3 +2,5 @@
 .venv
 .private
 *.pyc
+*.swp
+*.swo
