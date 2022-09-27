@@ -27,6 +27,8 @@ setup_gcloud_project() {
       die "Could not find $req in the \$PATH."
     fi
   done
+  
+  gcloud auth login
 
   if ! gcloud projects describe "$PROJECT" > /dev/null; then
     gcloud projects create "$PROJECT" || die "Failed to create project $PROJECT."
