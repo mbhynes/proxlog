@@ -1,0 +1,104 @@
+{
+ "type" : "record",
+ "name" : "Avro",
+ "fields" : [
+    {
+      "name" : "username",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "hostname",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "flow_id",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "flow_type",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "flow_mode",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "client_ip",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "client_port",
+      "type" : ["null", "int"],
+      "default" : null
+    },
+    {
+      "name" : "server_ip",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "server_address",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "server_address_port",
+      "type" : ["null", "int"],
+      "default" : null
+    },
+    {
+      "name" : "request_timestamp_start",
+      "type" : "double"
+    },
+    {
+      "name" : "request_timestamp_end",
+      "type" : "double"
+    },
+    {
+      "name" : "method",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "scheme",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "path",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "authority",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "headers",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "http_version",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "user_agent",
+      "type" : ["null", "string"],
+      "default" : null
+    },
+    {
+      "name" : "accept",
+      "type" : ["null", "string"],
+      "default" : null
+    }
+ ]
+}
